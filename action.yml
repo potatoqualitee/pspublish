@@ -32,7 +32,7 @@ runs:
     - id: updatemodule
       shell: pwsh
       run: |
-        if (${{ inputs.files }}) {
+        if ((${{ inputs.files }})) {
           $files = ${{ inputs.files }}
         } else {
           $files = "*.psd1"
