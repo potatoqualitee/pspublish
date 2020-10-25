@@ -5,7 +5,7 @@ branding:
 description: 'Update module version and publish to the PowerShell Gallery'
 inputs:
   files:
-    description: 'Modules to update. If left blank, it will update all .psd1s in the repo'
+    description: 'Manifest files to update. If left blank, it will update all .psd1 files in the repo.'
     required: false
   gallerykey:
     description: 'NugetApiKey if you want to publish to the PS Gallery'
@@ -28,7 +28,7 @@ runs:
   steps: 
     - id: intro
       shell: bash
-      run: echo Gathering information for modules ${{ inputs.files }}.
+      run: echo Processing files ${{ inputs.files }}.
     - id: updatemodule
       shell: pwsh
       run: |
