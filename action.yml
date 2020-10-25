@@ -1,0 +1,79 @@
+name: 'PowerShell Module Version Update and Publish'
+branding:
+  icon: 'upload'  
+  color: 'gray-dark'
+description: 'Update module version and publish to the PowerShell Gallery'
+inputs:
+  files:
+    description: 'Modules to update. If left blank, it will update all .psd1s in the repo'
+    required: false
+  gallerykey:
+    description: 'NugetApiKey if you want to publish to the PS Gallery'
+    required: false
+  skipautomatictags:
+    description: 'Skip automatic tags when publishing to Gallery'
+    required: false
+  modulepath:
+    description: 'The relative path to the PowerShell module'
+    required: false
+outputs:
+  needed: 
+    description: "errors"
+    value: ${{ steps.psoutput.outputs.errors }}
+  modulepath: 
+    description: "Success or failure"
+    value: ${{ steps.psoutput.outputs.success }}
+runs:
+  using: "composite"
+  steps: 
+    - id: intro
+      shell: bash
+      run: echo Gathering information for modules ${{ inputs.files }}.
+    - id: updatemodule
+      shell: pwsh
+      run: |
+        if (${{ inputs.files }}) {
+          $files = ${{ inputs.files }}
+        } else {
+          $files = "*.psd1"
+        }
+        $manifests = Get-ChildItem -Recurse $files
+        foreach ($file in $manifests) {
+          $manifest = Import-PowerShellDataFile $manifest
+          [version]$version = $manifest.ModuleVersion
+          # Add one to the build of the version number
+          [version]$newversion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1) 
+          # Update the manifest file
+          Update-ModuleManifest -Path $file -ModuleVersion $newversion
+        }
+    - id: pushtoremote
+      shell: bash
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -A
+        git commit -m "Update module version"
+        git push
+    - id: publishtogallery
+      shell: pwsh
+      run: |
+        if (${{ inputs.skipautomatictags }}) {
+          $skipautotags = ${{ inputs.skipautomatictags }}
+        } else {
+          $skipautotags = $false
+        }
+        if (${{ inputs.gallerykey }}) {
+          try {
+            Publish-Module -Path c:\gallery\dbatools -NuGetApiKey ${{ inputs.gallerykey }} -SkipAutomaticTags:${{ inputs.skipautomatictags }}) -Verbose -ErrorAction Stop
+          } catch {
+            $success = $false
+            Write-Error $_
+          }
+        }
+    - id: psoutput
+      shell: pwsh
+      run: |
+        Write-Output "::set-output name=success::$($success)"
+        Write-Output "::set-output name=errors::$($error)"
+
+        
