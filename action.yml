@@ -41,7 +41,7 @@ runs:
         }
         $manifests = Get-ChildItem -Recurse $files
         foreach ($file in $manifests) {
-          $manifest = Import-PowerShellDataFile $manifest
+          $manifest = Import-PowerShellDataFile $file
           [version]$version = $manifest.ModuleVersion
           # Add one to the build of the version number
           [version]$newversion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1) 
