@@ -16,6 +16,9 @@ inputs:
   modulepath:
     description: 'The relative path to the PowerShell module'
     required: false
+  gallerykey:
+    description: 'The PowerShell Gallery (Nuget) key'
+    required: false
 outputs:
   needed: 
     description: "errors"
@@ -59,7 +62,7 @@ runs:
     - id: publishtogallery
       shell: pwsh
       env: 
-        gallerykey: ${{ secrets.GALLERYKEY }}
+        gallerykey: ${{ inputs.gallerykey }}
         whatif: ${{ inputs.whatif }}
         skipautomatictags: ${{ inputs.skipautomatictags }}
         modulepath: ${{ inputs.modulepath }}
