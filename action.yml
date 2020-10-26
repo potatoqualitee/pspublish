@@ -31,9 +31,11 @@ runs:
       run: echo Processing files ${{ inputs.files }}.
     - id: updatemodule
       shell: pwsh
+      env:
+        files: ${{ inputs.files }}
       run: |
-        if ((${{ inputs.files }})) {
-          $files = ${{ inputs.files }}
+        if ($env:files) {
+          $files = $env:files
         } else {
           $files = "*.psd1"
         }
@@ -56,15 +58,18 @@ runs:
         git push
     - id: publishtogallery
       shell: pwsh
+      env:
+        gallerykey: ${{ inputs.gallerykey }}
+        skipautomatictags: ${{ inputs.skipautomatictags }}
       run: |
-        if (${{ inputs.skipautomatictags }}) {
-          $skipautotags = ${{ inputs.skipautomatictags }}
+        if ($env:skipautomatictags) {
+          $skipautotags = $true
         } else {
           $skipautotags = $false
         }
-        if (${{ inputs.gallerykey }}) {
+        if ($env:gallerykey) {
           try {
-            Publish-Module -Path c:\gallery\dbatools -NuGetApiKey ${{ inputs.gallerykey }} -SkipAutomaticTags:${{ inputs.skipautomatictags }}) -Verbose -ErrorAction Stop
+            Publish-Module -Path c:\gallery\dbatools -NuGetApiKey $env:gallerykey -SkipAutomaticTags:($env:skipautomatictags) -Verbose -ErrorAction Stop
           } catch {
             $success = $false
             Write-Error $_
