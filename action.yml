@@ -41,12 +41,11 @@ runs:
         }
         $manifests = Get-ChildItem -Recurse $files
         foreach ($file in $manifests) {
-          $manifest = Import-PowerShellDataFile $file
-          [version]$version = $manifest.ModuleVersion
+          [version]$Version = [regex]::matches($file, "\s*ModuleVersion\s=\s'(\d*.\d*.\d*)'\s*").groups[1].value
           # Add one to the build of the version number
           [version]$newversion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1) 
           # Update the manifest file
-          Update-ModuleManifest -Path $file -ModuleVersion $newversion
+          (Get-Content $file) -replace $version, $NewVersion | Out-File $file
         }
     - id: pushtoremote
       shell: bash
