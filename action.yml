@@ -33,7 +33,7 @@ runs:
       shell: bash
       run: |
         echo Processing files ${{ inputs.files }}.
-        apt-get install osslsigncode -y
+        sudo apt-get install osslsigncode -y
     - id: updatemodule
       shell: pwsh
       env:
