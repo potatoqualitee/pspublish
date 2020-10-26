@@ -7,8 +7,8 @@ inputs:
   files:
     description: 'Manifest files to update. If left blank, it will update all .psd1 files in the repo.'
     required: false
-  gallerykey:
-    description: 'NugetApiKey if you want to publish to the PS Gallery'
+  whatif:
+    description: 'Run WhatIf instead of actually publishing'
     required: false
   skipautomatictags:
     description: 'Skip automatic tags when publishing to Gallery'
@@ -19,7 +19,7 @@ inputs:
 outputs:
   needed: 
     description: "errors"
-    value: ${{ steps.psoutput.outputs.errors }}
+    value: ${{ steps.publishtogallery.outputs.errors }}
   modulepath: 
     description: "Success or failure"
     value: ${{ steps.psoutput.outputs.success }}
@@ -41,6 +41,7 @@ runs:
         }
         $manifests = Get-ChildItem -Recurse $files
         foreach ($file in $manifests) {
+          # Use regex, Update-ModuleManifest destroys formatting
           [version]$Version = [regex]::matches((Get-Content $file), "\s*ModuleVersion\s*=\s*'(\d*.\d*.\d*)'\s*").groups[1].value
           # Add one to the build of the version number
           [version]$newversion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1) 
@@ -57,27 +58,29 @@ runs:
         git push
     - id: publishtogallery
       shell: pwsh
-      env:
-        gallerykey: ${{ inputs.gallerykey }}
+      env: 
+        gallerykey: ${{ secrets.GALLERYKEY }}
+        whatif: ${{ inputs.whatif }}
         skipautomatictags: ${{ inputs.skipautomatictags }}
+        modulepath: ${{ inputs.modulepath }}
       run: |
-        if ($env:skipautomatictags) {
-          $skipautotags = $true
-        } else {
-          $skipautotags = $false
+        if (-not $env:modulepath) {
+          if ($isWindows) {
+            $env:modulepath = ".\"
+          } else {
+            $env:modulepath = "./"
+          }
         }
+
         if ($env:gallerykey) {
           try {
-            Publish-Module -Path c:\gallery\dbatools -NuGetApiKey $env:gallerykey -SkipAutomaticTags:($env:skipautomatictags) -Verbose -ErrorAction Stop
+            Publish-Module -Path $env:modulepath -NuGetApiKey $env:gallerykey -SkipAutomaticTags:$env:skipautomatictags -Verbose -ErrorAction Stop -WhatIf:$env:whatif -Verbose
+            Write-Output "::set-output name=success::$($true)"
           } catch {
-            $success = $false
+            Write-Output "::set-output name=success::$($false)"
             Write-Error $_
           }
         }
-    - id: psoutput
-      shell: pwsh
-      run: |
-        Write-Output "::set-output name=success::$($success)"
-        Write-Output "::set-output name=errors::$($error)"
-
-        
+        if ($error) {
+          Write-Output "::set-output name=errors::$($error)"
+        }
