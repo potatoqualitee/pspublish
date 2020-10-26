@@ -45,15 +45,13 @@ runs:
           # Add one to the build of the version number
           [version]$newversion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1) 
           # Update the manifest file
-          (Get-Content $file) -replace $version, $NewVersion | Out-File $file
+          (Get-Content $file) -replace $version, $NewVersion | Out-File $file -Encoding UTF8
         }
     - id: pushtoremote
       shell: bash
       run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add -A
-        git commit -m "Update module version"
+        git commit -m "Update module version" --author="github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
         git push
     - id: publishtogallery
       shell: pwsh
