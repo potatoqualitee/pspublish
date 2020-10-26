@@ -51,7 +51,7 @@ runs:
       shell: bash
       run: |
         git add -A
-        git commit -m "Update module version" --author="github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+        git commit --allow-empty -m "Update module version" --author="github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
         git push
     - id: publishtogallery
       shell: pwsh
