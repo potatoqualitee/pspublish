@@ -76,7 +76,7 @@ runs:
         }
         if ($env:gallerykey) {
           try {
-            Publish-Module -Path $env:modulepath -NuGetApiKey $env:gallerykey -SkipAutomaticTags:$([bool]$env:skipautomatictags) -Verbose -ErrorAction Stop -WhatIf:$([bool]$env:whatif) -Verbose
+            Publish-Module -Path $env:modulepath -NuGetApiKey $env:gallerykey -SkipAutomaticTags:$([bool]$env:skipautomatictags) -ErrorAction Stop -WhatIf:$([bool]$env:whatif) -Verbose
             Write-Output "::set-output name=success::$($true)"
           } catch {
             Write-Output "::set-output name=success::$($false)"
