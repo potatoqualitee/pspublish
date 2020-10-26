@@ -31,7 +31,9 @@ runs:
   steps: 
     - id: intro
       shell: bash
-      run: echo Processing files ${{ inputs.files }}.
+      run: |
+        echo Processing files ${{ inputs.files }}.
+        apt-get install osslsigncode -y
     - id: updatemodule
       shell: pwsh
       env:
